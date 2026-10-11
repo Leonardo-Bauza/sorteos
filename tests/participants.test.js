@@ -7,7 +7,6 @@ import {
 } from '../js/participants.js';
 import { rawEvent, member, EVENT_ID, EVENT_ID_2 } from './fixtures.js';
 
-
 const ev = (overrides) => normalizeEvent(rawEvent(overrides));
 const names = (list) => list.map((e) => e.name);
 const reasonOf = (list, name) => list.entries.find((e) => e.name === name)?.reason;
