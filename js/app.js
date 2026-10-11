@@ -15,7 +15,7 @@ import { buildAudit, formatResultsText, formatDateTime, listFingerprint, exclusi
 import { loadBlocked, saveBlocked, parseBlockedText, loadPrefs, savePrefs } from './storage.js';
 import { cleanText } from './text.js';
 import { h, clear, $, announce, toast, confirmDialog, showDialog, wait } from './dom.js';
-import { rollNames, confetti } from './reveal.js';
+import { rollNames, confetti, setupSky, setMagic } from './reveal.js';
 import { setupPwa } from './pwa.js';
 
 const MEDALS = ['🥇', '🥈', '🥉'];
@@ -480,12 +480,14 @@ function renderStage({ highlightKey = null } = {}) {
 function startReveal() {
   state.revealing = true;
   state.skip = new AbortController();
+  setMagic(true);
   renderStage();
   el.skipBtn.focus();
   return state.skip.signal;
 }
 
 function endReveal() {
+  setMagic(false);
   state.revealing = false;
   state.skip = null;
 }
@@ -810,6 +812,7 @@ function init() {
   el.blocked.value = state.blocked.join('\n');
   selectTab('api');
   showView('load', { focus: false });
+  setupSky();
   setupPwa();
 }
 

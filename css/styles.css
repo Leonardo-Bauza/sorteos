@@ -71,6 +71,18 @@ small { color: var(--muted); font-size: 0.85em; }
 }
 .skip-link:focus { top: 1rem; }
 
+/* ---------- Cielo de estrellitas ---------- */
+.sky { position: fixed; inset: 0; z-index: 0; pointer-events: none; overflow: hidden; }
+.site-header, main, .site-footer { position: relative; z-index: 1; }
+.star {
+  position: absolute; line-height: 1; font-size: var(--size, 14px); color: var(--color, #fff);
+  text-shadow: 0 0 6px currentColor, 0 0 16px currentColor;
+  opacity: 0; will-change: transform, opacity;
+  animation: twinkle var(--dur, 5s) ease-in-out var(--delay, 0s) infinite;
+}
+body.is-magic .star { animation-duration: calc(var(--dur, 5s) / 3); }
+body.is-presenting .sky { z-index: 51; }
+
 /* ---------- Header ---------- */
 .site-header {
   display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 0.75rem;
@@ -264,6 +276,15 @@ textarea:focus-visible, input:focus-visible { border-color: var(--cyan); }
   font-family: var(--font-display); font-size: clamp(1.6rem, 8vw, 2.8rem); font-weight: 800;
   min-height: 1.6em; overflow-wrap: anywhere;
 }
+.roller { position: relative; }
+.roller::before, .roller::after {
+  content: "✦"; position: absolute; font-size: 1.4rem; color: var(--yellow);
+  text-shadow: 0 0 8px currentColor, 0 0 18px currentColor;
+  animation: twinkle 2.4s ease-in-out infinite;
+}
+.roller::before { top: -0.7rem; left: 0.8rem; }
+.roller::after { bottom: -0.7rem; right: 0.8rem; color: #ff9fcf; animation-delay: -1.2s; }
+.roller.is-rolling::before, .roller.is-rolling::after { animation-duration: 0.7s; }
 .roller.is-rolling #roller-name { filter: blur(0.6px); opacity: 0.85; }
 .roller.is-final { border-style: solid; border-color: var(--yellow); animation: pop 0.45s ease; }
 
@@ -354,6 +375,10 @@ body.is-presenting .prize-name { font-size: clamp(1.4rem, 3.2vw, 2.2rem); }
 @keyframes fade-in { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
 @keyframes spin { to { transform: rotate(360deg); } }
 @keyframes pop { 0% { transform: scale(0.85); opacity: 0; } 60% { transform: scale(1.06); opacity: 1; } 100% { transform: scale(1); } }
+@keyframes twinkle {
+  0%, 100% { opacity: 0; transform: translateY(0) scale(0.3) rotate(0deg); }
+  50% { opacity: 0.95; transform: translateY(-10px) scale(1) rotate(45deg); }
+}
 @keyframes pulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.03); } }
 
 @media (prefers-reduced-motion: reduce) {
@@ -362,6 +387,7 @@ body.is-presenting .prize-name { font-size: clamp(1.4rem, 3.2vw, 2.2rem); }
     transition-duration: 0.01ms !important; scroll-behavior: auto !important;
   }
   .spinner { animation: none; border-top-color: var(--yellow); }
+  .star, .roller::before, .roller::after { animation: none !important; opacity: 0.4; transform: none; }
 }
 
 @media (min-width: 640px) {

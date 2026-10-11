@@ -39,6 +39,37 @@ export async function rollNames(el, names, finalName, { duration = 2600, signal 
   box.classList.add('is-final');
 }
 
+const SKY_COLORS = ['#ffffff', '#ffd23f', '#ff9fcf', '#9ff3ff', '#c4b5fd'];
+
+/**
+ * Cielo de estrellitas que titilan de fondo. Son elementos con animación
+ * CSS de opacidad/transformación (barata para el celular). Con movimiento
+ * reducido quedan quietas y tenues (ver styles.css).
+ */
+export function setupSky() {
+  const sky = document.getElementById('sky');
+  if (!sky) return;
+  const count = globalThis.innerWidth < 640 ? 18 : 30;
+  const rand = (min, max) => min + Math.random() * (max - min);
+  sky.replaceChildren(...Array.from({ length: count }, () => {
+    const star = document.createElement('span');
+    star.className = 'star';
+    star.textContent = '✦';
+    star.style.left = `${rand(0, 100)}%`;
+    star.style.top = `${rand(0, 100)}%`;
+    star.style.setProperty('--size', `${rand(8, 22).toFixed(1)}px`);
+    star.style.setProperty('--dur', `${rand(3, 7).toFixed(2)}s`);
+    star.style.setProperty('--delay', `${(-rand(0, 7)).toFixed(2)}s`); // negativo: arrancan desfasadas
+    star.style.setProperty('--color', SKY_COLORS[Math.floor(Math.random() * SKY_COLORS.length)]);
+    return star;
+  }));
+}
+
+/** Durante el suspenso las estrellas brillan más y titilan más rápido. */
+export function setMagic(on) {
+  document.body.classList.toggle('is-magic', on);
+}
+
 const COLORS = ['#ff4f9a', '#ff9f1c', '#ffd23f', '#3ee0f5', '#4ade80', '#8b5cf6', '#ffffff'];
 let running = null;
 
@@ -65,7 +96,7 @@ export function confetti({ amount = 160, duration = 2800 } = {}) {
     rot: Math.random() * Math.PI,
     vr: (Math.random() - 0.5) * 0.35,
     color: COLORS[Math.floor(Math.random() * COLORS.length)],
-    star: Math.random() < 0.25,
+    star: Math.random() < 0.5,
   }));
 
   if (running) cancelAnimationFrame(running);
