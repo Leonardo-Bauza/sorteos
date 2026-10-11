@@ -1,0 +1,9 @@
+{
+  "name": "sorteos-pogo-caseros",
+  "private": true,
+  "description": "App estática de sorteos para la comunidad Pokémon GO Caseros",
+  "type": "module",
+  "scripts": {
+    "test": "node --test"
+  }
+}
