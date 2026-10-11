@@ -6,6 +6,8 @@ import { cleanText } from './text.js';
 
 export const API_BASE = 'https://cmpf-tools.de';
 export const DEFAULT_TIMEOUT_MS = 15000;
+// Tope defensivo: un evento real tiene decenas o cientos de miembros.
+export const MAX_MEMBERS = 5000;
 
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
@@ -55,6 +57,7 @@ export function normalizeEvent(raw) {
     time: typeof raw.time === 'string' ? raw.time : '',
     creator: normalizePerson(raw.creator),
     members: members
+      .slice(0, MAX_MEMBERS)
       .filter((m) => m && typeof m.id === 'string' && m.id)
       .map((m) => ({
         ...normalizePerson(m),

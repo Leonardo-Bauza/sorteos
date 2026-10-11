@@ -49,7 +49,7 @@
 
       <form id="panel-api" class="card" role="tabpanel" aria-labelledby="tab-api" novalidate>
         <label for="links" class="label">Link del evento</label>
-        <textarea id="links" rows="3" autocomplete="off" autocapitalize="off" spellcheck="false" inputmode="url"
+        <textarea id="links" rows="3" maxlength="5000" autocomplete="off" autocapitalize="off" spellcheck="false" inputmode="url"
           placeholder="https://cmpf.re/…" aria-describedby="links-hint"></textarea>
         <p id="links-hint" class="hint">Sirven links de Campfire (cmpf.re o campfire…/meetup/…). Para sumar varios eventos, poné uno por línea.</p>
         <button type="submit" id="fetch-btn" class="btn btn-primary btn-block">Traer participantes</button>
@@ -58,7 +58,7 @@
 
       <form id="panel-manual" class="card" role="tabpanel" aria-labelledby="tab-manual" hidden novalidate>
         <label for="manual" class="label">Nombres de los participantes</label>
-        <textarea id="manual" rows="8" autocomplete="off" spellcheck="false" aria-describedby="manual-hint"
+        <textarea id="manual" rows="8" maxlength="300000" autocomplete="off" spellcheck="false" aria-describedby="manual-hint"
           placeholder="Ana&#10;Beto&#10;Cami"></textarea>
         <p id="manual-hint" class="hint">Uno por línea. Sirve si la API no anda o el sorteo no es de un evento de Campfire. Funciona sin internet.</p>
         <button type="submit" class="btn btn-primary btn-block">Usar esta lista</button>
@@ -89,7 +89,7 @@
       <div class="card">
         <div class="list-head">
           <p id="review-count" class="count" aria-live="polite"></p>
-          <input type="search" id="search" class="search" placeholder="Buscar…" aria-label="Buscar participante" autocomplete="off">
+          <input type="search" id="search" maxlength="60" class="search" placeholder="Buscar…" aria-label="Buscar participante" autocomplete="off">
         </div>
         <ul id="eligible-list" class="people" aria-label="Participantes del sorteo"></ul>
         <p id="eligible-empty" class="empty" hidden></p>
@@ -102,7 +102,7 @@
       <details class="card blocked-box">
         <summary>🚫 Bloqueados <small>(se guardan en este dispositivo)</small></summary>
         <label for="blocked" class="label">Un bloqueado por línea: usuario, nombre o ID</label>
-        <textarea id="blocked" rows="4" autocomplete="off" spellcheck="false"></textarea>
+        <textarea id="blocked" rows="4" maxlength="50000" autocomplete="off" spellcheck="false"></textarea>
         <button type="button" id="save-blocked" class="btn btn-secondary">Guardar bloqueados</button>
         <p id="blocked-status" class="status" role="status" aria-live="polite"></p>
       </details>

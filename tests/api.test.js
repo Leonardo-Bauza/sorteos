@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { fetchEvent, fetchEvents, normalizeEvent, ApiError, API_BASE } from '../js/api.js';
+import { fetchEvent, fetchEvents, normalizeEvent, ApiError, API_BASE, MAX_MEMBERS } from '../js/api.js';
 import { rawEvent, jsonResponse, textResponse, EVENT_ID, EVENT_ID_2 } from './fixtures.js';
 
 const NOT_FOUND = 'Failed to get events for export: failed to fetch events: failed to fetch event "x": graphql errors: Error: error checking permissions for event x: row not found: row not found, Path: event';
@@ -44,6 +44,11 @@ test('normalizeEvent tolera campos faltantes o con tipos raros', () => {
   assert.deepEqual(ev.creator, { id: '', username: '', display_name: '' });
   assert.deepEqual(ev.members, [{ id: 'E:1', username: '', display_name: '', rsvp_status: 'CHECKED_IN' }]);
   assert.throws(() => normalizeEvent({ name: 'sin id' }), ApiError);
+});
+
+test('normalizeEvent pone un tope a la cantidad de miembros', () => {
+  const members = Array.from({ length: MAX_MEMBERS + 50 }, (_, i) => ({ id: `E:${i}`, username: `u${i}`, display_name: '', rsvp_status: 'CHECKED_IN' }));
+  assert.equal(normalizeEvent(rawEvent({ members })).members.length, MAX_MEMBERS);
 });
 
 test('normalizeEvent limpia caracteres de control y marcas bidi en los nombres', () => {
