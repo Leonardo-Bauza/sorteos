@@ -1,0 +1,218 @@
+<!doctype html>
+<html lang="es-AR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; connect-src 'self' https://cmpf-tools.de; manifest-src 'self'; worker-src 'self'; base-uri 'none'; form-action 'none'; object-src 'none'">
+  <meta name="referrer" content="no-referrer">
+  <title>Sorteos · Pokémon GO Caseros</title>
+  <meta name="description" content="Sorteos para los eventos de la comunidad Pokémon GO Caseros, con los asistentes de Campfire.">
+  <meta name="theme-color" content="#1a1147">
+  <meta name="color-scheme" content="dark">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-title" content="Sorteos">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <link rel="manifest" href="./manifest.webmanifest">
+  <link rel="icon" href="./icons/icon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="./icons/apple-touch-icon.png">
+  <link rel="stylesheet" href="./css/styles.css">
+  <script type="module" src="./js/app.js"></script>
+</head>
+<body>
+  <a class="skip-link" href="#main">Saltar al contenido</a>
+
+  <header class="site-header">
+    <div class="brand">
+      <img src="./icons/icon.svg" alt="" width="44" height="44">
+      <p class="brand-text"><span>Sorteos</span> <strong>Pokémon GO Caseros</strong></p>
+    </div>
+    <ol class="steps" aria-label="Pasos del sorteo">
+      <li data-step="load">Evento</li>
+      <li data-step="review">Lista</li>
+      <li data-step="draw">Sorteo</li>
+    </ol>
+  </header>
+
+  <main id="main" tabindex="-1">
+    <noscript><p class="alert alert-error">Esta app necesita JavaScript activado.</p></noscript>
+
+    <!-- PASO 1: cargar evento -->
+    <section id="view-load" class="view" aria-labelledby="h-load">
+      <h1 id="h-load">¡Armemos el sorteo! <span aria-hidden="true">🎉</span></h1>
+      <p class="lead">Pegá el link del evento de Campfire y traemos a los que hicieron check-in.</p>
+
+      <div class="tabs" role="tablist" aria-label="Origen de los participantes">
+        <button type="button" role="tab" id="tab-api" aria-controls="panel-api" aria-selected="true">📍 Desde Campfire</button>
+        <button type="button" role="tab" id="tab-manual" aria-controls="panel-manual" aria-selected="false" tabindex="-1">📝 Lista manual</button>
+      </div>
+
+      <form id="panel-api" class="card" role="tabpanel" aria-labelledby="tab-api" novalidate>
+        <label for="links" class="label">Link del evento</label>
+        <textarea id="links" rows="3" autocomplete="off" autocapitalize="off" spellcheck="false" inputmode="url"
+          placeholder="https://cmpf.re/…" aria-describedby="links-hint"></textarea>
+        <p id="links-hint" class="hint">Sirven links de Campfire (cmpf.re o campfire…/meetup/…). Para sumar varios eventos, poné uno por línea.</p>
+        <button type="submit" id="fetch-btn" class="btn btn-primary btn-block">Traer participantes</button>
+        <div id="load-status" class="status" role="status" aria-live="polite"></div>
+      </form>
+
+      <form id="panel-manual" class="card" role="tabpanel" aria-labelledby="tab-manual" hidden novalidate>
+        <label for="manual" class="label">Nombres de los participantes</label>
+        <textarea id="manual" rows="8" autocomplete="off" spellcheck="false" aria-describedby="manual-hint"
+          placeholder="Ana&#10;Beto&#10;Cami"></textarea>
+        <p id="manual-hint" class="hint">Uno por línea. Sirve si la API no anda o el sorteo no es de un evento de Campfire. Funciona sin internet.</p>
+        <button type="submit" class="btn btn-primary btn-block">Usar esta lista</button>
+        <div id="manual-status" class="status" role="status" aria-live="polite"></div>
+      </form>
+    </section>
+
+    <!-- PASO 2: revisar la lista -->
+    <section id="view-review" class="view" aria-labelledby="h-review" hidden>
+      <div class="view-head">
+        <h1 id="h-review">Revisá la lista</h1>
+        <div class="view-head-actions">
+          <button type="button" id="back-to-load" class="btn btn-ghost btn-sm">← Cambiar evento</button>
+          <button type="button" id="refresh-btn" class="btn btn-ghost btn-sm">🔄 Volver a traer</button>
+        </div>
+      </div>
+
+      <div id="review-events" class="events"></div>
+      <div id="review-alerts"></div>
+
+      <fieldset class="card filters">
+        <legend>¿Quiénes participan?</legend>
+        <label class="check"><input type="checkbox" id="f-checkin" checked> <span>Solo con check-in <small>(si lo destildás, entran también los que confirmaron asistencia)</small></span></label>
+        <label class="check"><input type="checkbox" id="f-one" checked> <span>Una entrada por persona <small>(aunque haya ido a varios eventos)</small></span></label>
+        <label class="check"><input type="checkbox" id="f-creator"> <span>El creador del evento participa</span></label>
+      </fieldset>
+
+      <div class="card">
+        <div class="list-head">
+          <p id="review-count" class="count" aria-live="polite"></p>
+          <input type="search" id="search" class="search" placeholder="Buscar…" aria-label="Buscar participante" autocomplete="off">
+        </div>
+        <ul id="eligible-list" class="people" aria-label="Participantes del sorteo"></ul>
+        <p id="eligible-empty" class="empty" hidden></p>
+        <details id="excluded-box" class="excluded">
+          <summary>Quedan afuera (<span id="excluded-count">0</span>)</summary>
+          <ul id="excluded-list" class="people people-excluded"></ul>
+        </details>
+      </div>
+
+      <details class="card blocked-box">
+        <summary>🚫 Bloqueados <small>(se guardan en este dispositivo)</small></summary>
+        <label for="blocked" class="label">Un bloqueado por línea: usuario, nombre o ID</label>
+        <textarea id="blocked" rows="4" autocomplete="off" spellcheck="false"></textarea>
+        <button type="button" id="save-blocked" class="btn btn-secondary">Guardar bloqueados</button>
+        <p id="blocked-status" class="status" role="status" aria-live="polite"></p>
+      </details>
+
+      <fieldset class="card prizes">
+        <legend>🎁 Premios</legend>
+        <div class="prize-inputs">
+          <label>Premios <input type="number" id="winners" min="1" max="1000" step="1" inputmode="numeric" required></label>
+          <label>Suplentes <input type="number" id="alternates" min="0" max="1000" step="1" inputmode="numeric"></label>
+        </div>
+        <div class="mode" role="radiogroup" aria-label="Cómo se revelan los ganadores">
+          <label class="mode-option"><input type="radio" name="mode" value="oneByOne"> <span><strong>Uno por uno</strong><small>Con suspenso para cada premio</small></span></label>
+          <label class="mode-option"><input type="radio" name="mode" value="all"> <span><strong>Todos juntos</strong><small>Un “Top” revelado de golpe</small></span></label>
+        </div>
+        <p id="prize-error" class="field-error" role="alert"></p>
+      </fieldset>
+
+      <div class="sticky-actions">
+        <button type="button" id="close-list" class="btn btn-primary btn-block">🔒 Cerrar lista y sortear</button>
+        <p id="close-hint" class="hint center"></p>
+      </div>
+    </section>
+
+    <!-- PASO 3: sorteo -->
+    <section id="view-draw" class="view" aria-labelledby="stage-title" hidden>
+      <div id="stage" class="stage">
+        <div class="stage-top">
+          <p id="stage-kicker" class="kicker"></p>
+          <button type="button" id="present-btn" class="btn btn-ghost btn-sm">⛶ Pantalla completa</button>
+        </div>
+        <h1 id="stage-title" class="stage-title">¡A sortear!</h1>
+        <p id="stage-meta" class="stage-meta"></p>
+
+        <div id="roller" class="roller" aria-hidden="true" hidden><span id="roller-name"></span></div>
+
+        <div class="draw-controls">
+          <button type="button" id="draw-btn" class="btn btn-mega"></button>
+          <button type="button" id="draw-rest-btn" class="btn btn-ghost" hidden></button>
+          <button type="button" id="skip-btn" class="btn btn-ghost btn-sm" hidden>Saltar animación ⏭</button>
+        </div>
+
+        <ol id="winners-board" class="board" aria-label="Ganadores"></ol>
+        <h2 id="alternates-title" class="board-title" hidden>🔁 Suplentes</h2>
+        <ol id="alternates-board" class="board board-alt" aria-labelledby="alternates-title"></ol>
+
+        <button type="button" id="exit-present" class="btn btn-ghost btn-sm exit-present">✕ Salir de pantalla completa</button>
+      </div>
+
+      <div id="result-actions" class="result-actions" hidden>
+        <button type="button" id="copy-btn" class="btn btn-primary">📋 Copiar resultados</button>
+        <button type="button" id="share-btn" class="btn btn-secondary" hidden>📤 Compartir</button>
+        <button type="button" id="download-btn" class="btn btn-ghost">💾 Descargar auditoría</button>
+      </div>
+
+      <div class="secondary-actions">
+        <button type="button" id="repeat-btn" class="btn btn-ghost btn-sm">🔁 Repetir sorteo</button>
+        <button type="button" id="reopen-btn" class="btn btn-ghost btn-sm">✏️ Volver a la lista</button>
+        <button type="button" id="new-btn" class="btn btn-ghost btn-sm">✨ Nuevo sorteo</button>
+      </div>
+
+      <details id="audit-box" class="card audit">
+        <summary>🔍 Auditoría del sorteo</summary>
+        <div id="audit-content"></div>
+      </details>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <div class="install" id="install-box" hidden>
+      <button type="button" id="install-btn" class="btn btn-secondary btn-sm" hidden>📲 Instalar app</button>
+      <p id="ios-hint" class="hint" hidden>📲 Para instalarla en iPhone: tocá <strong>Compartir</strong> y después <strong>Agregar a inicio</strong>.</p>
+    </div>
+    <p>Comunidad Pokémon GO Caseros. No afiliado a Niantic, Nintendo, Creatures ni The Pokémon Company.</p>
+    <p>Datos vía <a href="https://cmpf-tools.de" rel="noopener noreferrer" target="_blank">cmpf-tools.de</a> (topi314)</p>
+  </footer>
+
+  <dialog id="dlg-confirm" class="dialog" aria-labelledby="dlg-confirm-title">
+    <form method="dialog">
+      <h2 id="dlg-confirm-title"></h2>
+      <p id="dlg-confirm-text"></p>
+      <div class="dialog-actions">
+        <button value="cancel" class="btn btn-ghost">Cancelar</button>
+        <button value="ok" id="dlg-confirm-ok" class="btn btn-danger">Confirmar</button>
+      </div>
+    </form>
+  </dialog>
+
+  <dialog id="dlg-replace" class="dialog" aria-labelledby="dlg-replace-title">
+    <form method="dialog">
+      <h2 id="dlg-replace-title">Reemplazar ganador</h2>
+      <p id="dlg-replace-text"></p>
+      <label for="replace-reason" class="label">Motivo <small>(opcional, queda en la auditoría)</small></label>
+      <input type="text" id="replace-reason" maxlength="60" autocomplete="off" placeholder="Ej.: no estaba presente">
+      <div class="dialog-actions">
+        <button value="cancel" class="btn btn-ghost">Cancelar</button>
+        <button value="ok" class="btn btn-danger">Reemplazar</button>
+      </div>
+    </form>
+  </dialog>
+
+  <dialog id="dlg-copy" class="dialog" aria-labelledby="dlg-copy-title">
+    <form method="dialog">
+      <h2 id="dlg-copy-title">Copiá los resultados</h2>
+      <p>No pude copiar automáticamente. Mantené apretado el texto para copiarlo.</p>
+      <textarea id="copy-fallback" rows="10" readonly></textarea>
+      <div class="dialog-actions"><button value="ok" class="btn btn-primary">Listo</button></div>
+    </form>
+  </dialog>
+
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+  <div id="announcer" class="visually-hidden" aria-live="assertive"></div>
+  <canvas id="confetti" class="confetti" aria-hidden="true"></canvas>
+</body>
+</html>
